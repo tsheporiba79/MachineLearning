@@ -17,8 +17,24 @@ PAD_TOKEN = "<pad>"
 
 
 def translate_sentence(
-    sentence: str, model, tokenizer_source, tokenizer_target, device
-):
+    sentence: str,
+    model: torch.nn.Module,
+    tokenizer_source: Tokenizer,
+    tokenizer_target: Tokenizer,
+    device: torch.device,
+) -> str:
+    """Translate a single sentence using the provided model and tokenizers.
+
+    Args:
+        sentence (str): The sentence to translate.
+        model (torch.nn.Module): The translation model.
+        tokenizer_source (Tokenizer): Tokenizer for the source language.
+        tokenizer_target (Tokenizer): Tokenizer for the target language.
+        device (torch.device): The device to run the model on.
+
+    Returns:
+        str: The translated sentence.
+    """
     # Preprocess the input sentence
     source = tokenizer_source.encode(sentence)
     source_ids = torch.tensor(source.ids, dtype=torch.long, device=device)
@@ -58,7 +74,7 @@ def translate_sentence(
         )
         encoder_output = model.encode(source_input, source_mask)
 
-        # Initialize the decoder input with the sos token
+        # Initialize the decoder input with the SOS token
         decoder_input = torch.tensor(
             [[tokenizer_target.token_to_id(SOS_TOKEN)]], device=device
         )
@@ -93,7 +109,12 @@ def translate_sentence(
     return " ".join(translated_sentence)
 
 
-def translate(sentence: str):
+def translate(sentence: str) -> None:
+    """Translate a given sentence.
+
+    Args:
+        sentence (str): The sentence to translate.
+    """
     # Define the device, tokenizers, and model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger.info("Using device: %s", device)
@@ -128,5 +149,7 @@ def translate(sentence: str):
 
 
 if __name__ == "__main__":
-    sentence = sys.argv[1] if len(sys.argv) > 1 else "I am not a very good a student."
+    sentence = (
+        sys.argv[1] if len(sys.argv) > 1 else "I am trying to translate this sentence."
+    )
     translate(sentence)
