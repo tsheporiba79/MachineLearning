@@ -5,6 +5,8 @@ from transformers import PreTrainedTokenizer
 
 
 class ModelDataset(Dataset):
+    """Custom dataset for model training."""
+
     def __init__(
         self,
         ds: Dataset,
@@ -14,6 +16,16 @@ class ModelDataset(Dataset):
         target_lang: str,
         seq_len: int,
     ) -> None:
+        """Initialize the dataset.
+
+        Args:
+            ds (Dataset): Original dataset.
+            tokenizer_source (PreTrainedTokenizer): Tokenizer for the source language.
+            tokenizer_target (PreTrainedTokenizer): Tokenizer for the target language.
+            source_lang (str): Source language code.
+            target_lang (str): Target language code.
+            seq_len (int): Maximum sequence length.
+        """
         super().__init__()
         self.seq_len = seq_len
         self.ds = ds
@@ -27,9 +39,18 @@ class ModelDataset(Dataset):
         self.pad_token_id = tokenizer_target.convert_tokens_to_ids("[PAD]")
 
     def __len__(self) -> int:
+        """Get the length of the dataset."""
         return len(self.ds)
 
     def __getitem__(self, idx: int) -> dict:
+        """Get a single item from the dataset.
+
+        Args:
+            idx (int): Index of the item.
+
+        Returns:
+            dict: Dictionary containing encoder input, decoder input, masks, labels, source text, and target text.
+        """
         source_target_pair = self.ds[idx]
         source_text = source_target_pair["translation"][self.source_lang]
         target_text = source_target_pair["translation"][self.target_lang]
@@ -93,5 +114,13 @@ class ModelDataset(Dataset):
 
 
 def causal_mask(size: int) -> torch.Tensor:
+    """Generate a causal mask.
+
+    Args:
+        size (int): Size of the mask.
+
+    Returns:
+        torch.Tensor: Causal mask tensor.
+    """
     mask = torch.triu(torch.ones((1, size, size)), diagonal=1).type(torch.bool)
     return ~mask
